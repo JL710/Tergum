@@ -26,4 +26,4 @@ Modul Code bleibt im `modules/module_dir`. Alle modulrelevanten Einstellungen od
 
 `modules/module_dir.py` beinhaltet Prozeduren, die helfen, vom Code in den Modulen auf die Dateien in den `module_dir`'s zu zugreifen.
 
-`./dev.py` beinhaltet eine CLI zum testen von bestimmten Szenarien. Erstellt automatisch leere Module etc. . Kann die tests.py der Module ansteuern.
+`/dev.py` beinhaltet eine CLI zum testen von bestimmten Szenarien. Erstellt automatisch leere Module etc. . Kann die tests.py der Module ansteuern.
