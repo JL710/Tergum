@@ -31,6 +31,8 @@ module_rm_parser.add_argument(
     help="Name of the module."
 )
 
+# module reload
+module_reload_parser = module_subparser.add_parser("reload", help="Reloads all modules into load_from_module.py")
 
 
 # process args
@@ -53,8 +55,15 @@ if args.subcommand_1 == "module":
         module_dir = Path("modules", args.name)
         module_dir.mkdir() # create dir
         
-        with open(module_dir / "module.py", "w"):
-            pass
+        with open(module_dir / "module.py", "w") as f:
+            f.write(
+"""from PyQt5 import QtWidgets
+
+
+class MainWidget(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+            """)
 
         with open(module_dir / "settings.json", "w") as f:
             json.dump({"title": args.name}, f)
@@ -70,6 +79,32 @@ if args.subcommand_1 == "module":
         if not os.path.isdir(module_dir):
             raise NotADirectoryError("The module does not exist.")
         shutil.rmtree(module_dir)
+
+    elif args.subcommand_2 == "reload":
+        # get list of modules
+        module_names = os.listdir("modules")
+        
+        # create import strings
+        string_pieces_import = []
+        for module in module_names:
+            string_pieces_import.append(f"from modules.{module} import MainWidget as {module}_widget")
+        
+        # create function strings
+        string_pieces_function = []
+        for module in module_names:
+            string_pieces_function.append(f"widgets.append({module}_widget())")
+
+        with open("load_from_module.py", "w") as f:
+            for string in string_pieces_import:
+                f.write(f"{string}\n")
+            
+            f.write("\ndef load_widgets() -> list:\n\twidgets = []\n\n")
+
+            for string in string_pieces_function:
+                f.write(f"\t{string}\n")
+
+            f.write("\n\treturn widgets\n")
+
 
 else:
     pass
