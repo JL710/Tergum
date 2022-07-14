@@ -15,6 +15,7 @@ Software für das sichern von Dateien, bzw. diese zu Synchronisieren.
 |       |-- otherfiles...
 |   
 |-- main.py
+|-- load_from_module.py
 |-- dev.py
 |-- data.json
 ```
@@ -23,4 +24,6 @@ Ein Modul stellt ein "Tab" und die dazu gehörigen Einstellungen dar. Es stellt 
 
 Modul Code bleibt im `modules/module_dir`. Alle modulrelevanten Einstellungen oder Daten werden in der `data.json` oder `settings.json` gespeichert.
 
-`/dev.py` beinhaltet eine CLI zum testen von bestimmten Szenarien. Erstellt automatisch leere Module etc. . Kann die tests.py der Module ansteuern.
+Die Datei `load_from_module.py` beinhaltet die Imports der einzellnen module. Sowie eine Funktion die die QWidget's zurück gibt. 
+
+`dev.py` beinhaltet eine CLI zum testen von bestimmten Szenarien. Erstellt automatisch leere Module etc. . Kann die tests.py der Module ansteuern.
