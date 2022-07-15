@@ -74,11 +74,13 @@ class MainWidget(QtWidgets.QWidget):
         with open(module_dir / "test.py", "w"):
             pass
     
+
     elif args.subcommand_2 == "rm":
         module_dir = Path("modules", args.name)
         if not os.path.isdir(module_dir):
             raise NotADirectoryError("The module does not exist.")
         shutil.rmtree(module_dir)
+
 
     elif args.subcommand_2 == "reload":
         # get list of modules
@@ -87,12 +89,14 @@ class MainWidget(QtWidgets.QWidget):
         # create import strings
         string_pieces_import = []
         for module in module_names:
-            string_pieces_import.append(f"from modules.{module} import MainWidget as {module}_widget")
+            if module != "__pycache__":
+                string_pieces_import.append(f"from modules.{module}.module import MainWidget as {module}_widget")
         
         # create function strings
         string_pieces_function = []
         for module in module_names:
-            string_pieces_function.append(f"widgets.append({module}_widget())")
+            if module != "__pycache__":
+                string_pieces_function.append(f"widgets.append({module}_widget())")
 
         with open("load_from_module.py", "w") as f:
             for string in string_pieces_import:
