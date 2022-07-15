@@ -2,6 +2,7 @@ import argparse
 import os, shutil
 from pathlib import Path
 import json
+import jinja2
 
 
 # setup the main parser
@@ -85,29 +86,33 @@ class MainWidget(QtWidgets.QWidget):
     elif args.subcommand_2 == "reload":
         # get list of modules
         module_names = os.listdir("modules")
-        
-        # create import strings
-        string_pieces_import = []
-        for module in module_names:
-            if module != "__pycache__":
-                string_pieces_import.append(f"from modules.{module}.module import MainWidget as {module}_widget")
-        
-        # create function strings
-        string_pieces_function = []
-        for module in module_names:
-            if module != "__pycache__":
-                string_pieces_function.append(f"widgets.append({module}_widget())")
+        if "__pycache__" in module_names:
+            module_names.remove("__pycache__")
 
+        tm = jinja2.Template(
+"""import json
+
+{% for name in module_names %}
+from modules.{{ name }}.module import MainWidget as {{ name }}_widget
+{% endfor %}
+
+def load_widgets() -> list:
+    modules = []
+
+    {% for name in module_names %}
+    {{ name }}_dict = {}
+    {{ name }}_dict["name"] = "{{ name }}"
+    {{ name }}_dict["widget"] = {{ name }}_widget()
+    with open("modules/{{ name }}/settings.json", "r") as f:
+        {{ name }}_dict["title"] = json.load(f)["title"]
+    modules.append({{ name }}_dict)
+    {% endfor %}
+
+    return modules
+""")
+        
         with open("load_from_module.py", "w") as f:
-            for string in string_pieces_import:
-                f.write(f"{string}\n")
-            
-            f.write("\ndef load_widgets() -> list:\n\twidgets = []\n\n")
-
-            for string in string_pieces_function:
-                f.write(f"\t{string}\n")
-
-            f.write("\n\treturn widgets\n")
+            f.write(tm.render(module_names=module_names))
 
 
 else:
