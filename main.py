@@ -16,7 +16,7 @@ class MainWindow(QWidget):
 
         # Tabwidget
         self.tabs = QtWidgets.QTabWidget()
-        for module in load_from_module.load_widgets():
+        for module in load_from_module.load_modules():
             self.tabs.addTab(module["widget"], module["title"])
 
         # mainlayout shit
