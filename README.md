@@ -24,6 +24,6 @@ Ein Modul stellt ein "Tab" und die dazu gehörigen Einstellungen dar. Es stellt 
 
 Modul Code bleibt im `modules/module_dir`. Alle modulrelevanten Einstellungen oder Daten werden in der `data.json` oder `settings.json` gespeichert.
 
-Die Datei `load_from_module.py` beinhaltet die Imports der einzellnen module. Sowie eine Funktion die die QWidget's zurück gibt. 
+Die Datei `load_from_module.py` beinhaltet eine Funktion, die die Module lädt. 
 
 `dev.py` beinhaltet eine CLI zum testen von bestimmten Szenarien. Erstellt automatisch leere Module etc. . Kann die tests.py der Module ansteuern.
