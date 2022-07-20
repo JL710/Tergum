@@ -60,12 +60,15 @@ class SetupWidget(QtWidgets.QWidget):
         @qtc.pyqtSlot()
         def add(self):
             path = QtWidgets.QFileDialog.getExistingDirectory()
-            cb.add_payload(path)
+            if path != "":  # checks if user canceled selection without any select
+                cb.add_payload(path)
             self.refresh()
 
         @qtc.pyqtSlot()
         def remove(self):
-            cb.remove_payload(self.currentItem().text())
+            item = self.currentItem()
+            if not item == None:
+                cb.remove_payload(item.text())
             self.refresh()
 
     class TargetGroupBox(QtWidgets.QGroupBox):
@@ -91,7 +94,9 @@ class SetupWidget(QtWidgets.QWidget):
         @qtc.pyqtSlot()
         def on_change_target(self):
             path = Path(QtWidgets.QFileDialog.getExistingDirectory(self, "New Target"))
-            if path.is_dir():
+            if not path.is_absolute():
+                pass # needs to be checked -> if user cancels the selection process
+            elif path.is_dir():
                 self.__target = path
                 self.__status_label.setText(str(self.__target))
                 cb.set_target(str(self.__target))
