@@ -41,7 +41,7 @@ if args.subcommand_1 == "module":
     if args.subcommand_2 == "list":
         print("{:<20}{:<20}".format("Name", "Title"))
         print("-"*40)
-        for dir in [x for x in os.scandir("modules") if x.is_dir()]:
+        for dir in [x for x in os.scandir("modules") if (x.is_dir() and Path(x).resolve() != Path("modules/__pycache__").resolve())]:
             with open(Path(dir, "settings.json"), "r") as f:
                 name = json.load(f)["title"]    
             print("{:<20}{:<20}".format(str(dir.name), name))
