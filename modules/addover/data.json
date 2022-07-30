@@ -1,0 +1,1 @@
+{"Target": "", "payload": [], "command": "XCOPY SOURCE DESTINATION /E /D /C /Y /v /q /k /r /h /i", "default-command": "XCOPY SOURCE DESTINATION /E /D /C /Y /v /q /k /r /h /i"}
