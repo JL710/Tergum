@@ -2,10 +2,30 @@ import PyQt5
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore as qtc
 from PyQt5 import QtGui as qtg
-from sklearn.cluster import mean_shift
-from sklearn.semi_supervised import SelfTrainingClassifier
 import modules.addover.code_behind as cb
 from pathlib import Path
+
+
+class Menu(QtWidgets.QMenu):
+    def __init__(self, main_widget):
+        super().__init__("Add Over")
+
+        self.__edit_command_action = QtWidgets.QAction("Edit Command")
+        self.__edit_command_action.triggered.connect(self.__on_edit_command)
+
+        self.__reset_command_action = QtWidgets.QAction("Reset Command")
+        self.__reset_command_action.triggered.connect(self.__on_reset_command)
+
+        self.addAction(self.__edit_command_action)
+        self.addAction(self.__reset_command_action)
+
+    def __on_edit_command(self):
+        text, submit = QtWidgets.QInputDialog.getText(self, "Edit Command", "Edit Command here:", text=cb.get_command())
+        if submit:
+            cb.set_command(text)
+
+    def __on_reset_command(self):
+        cb.reset_command()
 
 
 
@@ -187,7 +207,6 @@ class ActionWidget(QtWidgets.QWidget):
 
     @qtc.pyqtSlot(dict)
     def __update_progress(self, do: dict):
-        print(do)
         self.__progress_bar.setValue(do["percentage"])
         self.__scroll_label.add_text(do["event-message"])
         if do["finished"]:
