@@ -12,16 +12,27 @@ class MainWindow(QWidget):
         self.initUI()
  
     def initUI(self):
-        self.layout = QtWidgets.QVBoxLayout()
+        self.__layout = QtWidgets.QVBoxLayout()
+
+        # menu
+        self.__menubar = QtWidgets.QMenuBar(self)        
 
         # Tabwidget
-        self.tabs = QtWidgets.QTabWidget()
-        for module in load_from_module.load_modules():
-            self.tabs.addTab(module["widget"], module["title"])
+        self.__tabs = QtWidgets.QTabWidget()
+
+        # load modules
+        self.__modules = load_from_module.load_modules()  # needs to be stored as attribut, because of menus
+        for module in self.__modules:
+            print(module)
+            if module["menu"] != None:
+                self.__menubar.addAction(module["menu"].menuAction())
+                print("chek add_emu")
+            self.__tabs.addTab(module["widget"], module["title"])
 
         # mainlayout shit
-        self.layout.addWidget(self.tabs)
-        self.setLayout(self.layout)
+        self.__layout.setMenuBar(self.__menubar)
+        self.__layout.addWidget(self.__tabs)
+        self.setLayout(self.__layout)
 
 
 
