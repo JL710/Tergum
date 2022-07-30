@@ -1,4 +1,3 @@
-import PyQt5
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore as qtc
 from PyQt5 import QtGui as qtg
@@ -75,8 +74,10 @@ class SetupWidget(QtWidgets.QWidget):
 
         self.__start_button = QtWidgets.QPushButton("Start")
         self.__start_button.clicked.connect(self.on_start)
-        self.__add_payload_button = QtWidgets.QPushButton("Add")
-        self.__add_payload_button.clicked.connect(self.__payload_list.add)
+        self.__add_dir_payload_button = QtWidgets.QPushButton("Add Directory")
+        self.__add_dir_payload_button.clicked.connect(self.__payload_list.add_dir)
+        self.__add_file_payload_button = QtWidgets.QPushButton("Add File")
+        self.__add_file_payload_button.clicked.connect(self.__payload_list.add_file)
         self.__remove_payload_button = QtWidgets.QPushButton("Remove")
         self.__remove_payload_button.clicked.connect(self.__payload_list.remove)
 
@@ -85,7 +86,8 @@ class SetupWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.__target_group_bot, 0, 0, 1, 2)
         self.layout.addWidget(self.__payload_list, 1, 0, 1, 2)
         self.layout.addWidget(self.__remove_payload_button, 2, 0, 1, 1)
-        self.layout.addWidget(self.__add_payload_button, 2, 1, 1, 1)
+        self.layout.addWidget(self.__add_dir_payload_button, 2, 1, 1, 1)
+        self.layout.addWidget(self.__add_file_payload_button, 3 ,1 , 1, 1)
         self.layout.addWidget(self.__start_button, 3, 0, 1, 1)
         self.setLayout(self.layout)
 
@@ -115,10 +117,18 @@ class SetupWidget(QtWidgets.QWidget):
                 self.addItem(load)
 
         @qtc.pyqtSlot()
-        def add(self):
+        def add_dir(self):
             path = QtWidgets.QFileDialog.getExistingDirectory()
             if path != "":  # checks if user canceled selection without any select
                 cb.add_payload(path)
+            self.refresh()
+
+        @qtc.pyqtSlot()
+        def add_file(self):
+            path = QtWidgets.QFileDialog.getOpenFileName()
+            print(path[0])
+            if Path(path[0]).is_file():
+                cb.add_payload(path[0])
             self.refresh()
 
         @qtc.pyqtSlot()

@@ -35,7 +35,7 @@ def set_payload(payload: list):
 def add_payload(payload: str):
     with open(Path("modules", "addover", "data.json"), "r") as f:
         data = json.load(f)
-    if not payload in data["payload"] and Path(payload).is_dir():
+    if not payload in data["payload"] and Path(payload).exists():
         data["payload"].append(payload)
         with open(Path("modules", "addover", "data.json"), "w") as f:
             json.dump(data, f)
