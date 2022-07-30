@@ -23,10 +23,8 @@ class MainWindow(QWidget):
         # load modules
         self.__modules = load_from_module.load_modules()  # needs to be stored as attribut, because of menus
         for module in self.__modules:
-            print(module)
             if module["menu"] != None:
                 self.__menubar.addAction(module["menu"].menuAction())
-                print("chek add_emu")
             self.__tabs.addTab(module["widget"], module["title"])
 
         # mainlayout shit
