@@ -17,6 +17,12 @@ def load_modules() -> list:
             # load widget
             module_import = importlib.import_module(f"modules.{module_dir}.module")
             module_dict["widget"] = module_import.MainWidget()
+
+            # load menu
+            if module_import.Menu == None:
+                module_dict["menu"] = None
+            else:
+                module_dict["menu"] = module_import.Menu(module_dict["widget"])
         
-        modules.append(module_dict)
+            modules.append(module_dict)
     return modules

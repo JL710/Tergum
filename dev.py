@@ -57,6 +57,7 @@ if args.subcommand_1 == "module":
             f.write(
 """from PyQt5 import QtWidgets
 
+Menu = None
 
 class MainWidget(QtWidgets.QWidget):
     def __init__(self):
