@@ -1,6 +1,9 @@
 import json
 from pathlib import Path
 
+import os
+
+
 
 def load_target() -> Path:
     with open(Path("modules", "addover", "data.json"), "r") as f:
@@ -45,9 +48,47 @@ def remove_payload(payload: str):
         with open(Path("modules", "addover", "data.json"), "w") as f:
             json.dump(data, f)
 
+def get_command() -> str:
+    with open(Path("modules", "addover", "data.json"), "r") as f:
+        data = json.load(f)
+    return data["command"]
+
+def set_command(command: str) -> str:
+    with open(Path("modules", "addover", "data.json"), "r") as f:
+        data = json.load(f)
+    data["command"] = command
+    with open(Path("modules", "addover", "data.json"), "w") as f:
+        json.dump(data, f)
+
+def reset_command():
+    with open(Path("modules", "addover", "data.json"), "r") as f:
+        data = json.load(f)
+    data["command"] = data["default-command"]
+    with open(Path("modules", "addover", "data.json"), "w") as f:
+        json.dump(data, f)
+
 def start():
-    import time
-    for i in range(0, 101, 10):
-        yield {"event-message": f"event: {i}", "percentage": i, "finished": False if i != 100 else True}
-        time.sleep(1)
+    # check if destination exists
+    if not Path(load_target()).exists():
+        yield {"event-message": f"event: Destination {load_target()} does not exist", "percentage": 100, "finished": True}
+        return
+
+    percent_factor = 100 / len(load_paylods())
+
+    for index_payload, payload in enumerate(load_paylods()):
+        # check if payload exists
+        if not Path(payload).exists():
+            yield {"event-message": f"event: Payload {payload} does not exist", "percentage": int(index_payload * percent_factor), "finished": False}
+            continue
+        
+        yield {"event-message": f"Begin with: {payload}", "percentage": int(index_payload * percent_factor), "finished": False}
+
+        command = get_command().replace("SOURCE", str(Path(payload)))
+        command = command.replace("DESTINATION", str(Path(load_target() / Path(payload).name)))
+        output = os.popen(command).read()
+        yield {"event-message": f"xcopy output: {output}", "percentage": int(index_payload * percent_factor), "finished": False}
+        
+    yield {"event-message": f"Finished", "percentage": 100, "finished": True}
+
+
 
