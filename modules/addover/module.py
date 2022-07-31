@@ -72,7 +72,8 @@ class SetupWidget(qtw.QWidget):
         self.__current_profile = cb.get_profile_names()[0]
 
         # widgets
-        self.__profile_group_box = self.ProfileGroupBox(parent=self)
+        self.__profile_group_box = self.ProfileGroupBox()
+        self.__profile_group_box.switch_profile.connect(self.on_profile_switch)
 
         self.__target_group_box = self.TargetGroupBox(parent=self)
         
@@ -118,6 +119,12 @@ class SetupWidget(qtw.QWidget):
     @property
     def current_profile(self):
         return self.__current_profile
+
+    def on_profile_switch(self, profile: str):
+        self.__current_profile = profile
+        self.__payload_list.refresh()
+        self.__target_group_box.reload()
+        print(profile)
 
     class PayloadList(qtw.QListWidget):
         def __init__(self, parent):
@@ -176,6 +183,10 @@ class SetupWidget(qtw.QWidget):
             self.__layout.addWidget(self.__change_button)
             self.setLayout(self.__layout)
 
+        def reload(self):
+            self.__target = cb.get_target(self.__parent.current_profile)
+            self.__status_label.setText(str(self.__target))
+
         @qtc.pyqtSlot()
         def on_change_target(self):
             path = Path(qtw.QFileDialog.getExistingDirectory(self, "New Target"))
@@ -183,8 +194,8 @@ class SetupWidget(qtw.QWidget):
                 pass # needs to be checked -> if user cancels the selection process
             elif path.is_dir():
                 self.__target = path
-                self.__status_label.setText(str(self.__target))
                 cb.set_target(self.__parent.current_profile, str(self.__target))
+                self.reload()
             else:
                 error = qtw.QMessageBox()
                 error.setWindowTitle("Error")
@@ -195,8 +206,7 @@ class SetupWidget(qtw.QWidget):
     class ProfileGroupBox(qtw.QGroupBox):
         switch_profile = qtc.pyqtSignal(str)
 
-        def __init__(self, parent):
-            self.__parent = parent
+        def __init__(self):
             super().__init__()
             # set Title
             self.setTitle("Profile")
@@ -221,6 +231,7 @@ class SetupWidget(qtw.QWidget):
         def reload_combobox(self):
             self.__combo_box.clear()
             self.__combo_box.addItems(cb.get_profile_names())
+            self.switch_profile.emit(self.__combo_box.currentText()) # just to make shure everywhere is that right
 
 
 
