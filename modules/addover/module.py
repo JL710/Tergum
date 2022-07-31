@@ -29,7 +29,6 @@ class Menu(qtw.QMenu):
 
 
 class MainWidget(qtw.QWidget):
-    # TODO: Property for current profile
 
 
     def __init__(self):
@@ -66,18 +65,18 @@ class MainWidget(qtw.QWidget):
 class SetupWidget(qtw.QWidget):
     # signal
     submit = qtc.pyqtSignal(str)
-    
-    current_profile = cb.get_profile_names()[0]
 
     def __init__(self):
         super().__init__()
 
-        # widgets
-        self.__profile_group_box = self.ProfileGroupBox()
+        self.__current_profile = cb.get_profile_names()[0]
 
-        self.__target_group_box = self.TargetGroupBox()
+        # widgets
+        self.__profile_group_box = self.ProfileGroupBox(parent=self)
+
+        self.__target_group_box = self.TargetGroupBox(parent=self)
         
-        self.__payload_list = self.PayloadList()
+        self.__payload_list = self.PayloadList(parent=self)
 
         self.__start_button = qtw.QPushButton("Start")
         self.__start_button.clicked.connect(self.on_start)
@@ -113,22 +112,29 @@ class SetupWidget(qtw.QWidget):
         if shure == qm.Yes:  # the pass is validated by the user
             self.submit.emit(SetupWidget.current_profile)
 
+    def get_current_profile(self):
+        return self.__current_profile
+
+    @property
+    def current_profile(self):
+        return self.__current_profile
 
     class PayloadList(qtw.QListWidget):
-        def __init__(self):
+        def __init__(self, parent):
+            self.__parent = parent
             super().__init__()
             self.refresh()
 
         def refresh(self):
             self.clear()
-            for load in cb.get_payloads(SetupWidget.current_profile):
+            for load in cb.get_payloads(self.__parent.current_profile):
                 self.addItem(load)
 
         @qtc.pyqtSlot()
         def add_dir(self):
             path = qtw.QFileDialog.getExistingDirectory()
             if path != "":  # checks if user canceled selection without any select
-                cb.add_payload(SetupWidget.current_profile, path)
+                cb.add_payload(self.__parent.current_profile, path)
             self.refresh()
 
         @qtc.pyqtSlot()
@@ -136,24 +142,25 @@ class SetupWidget(qtw.QWidget):
             path = qtw.QFileDialog.getOpenFileName()
             print(path[0])
             if Path(path[0]).is_file():
-                cb.add_payload(SetupWidget.current_profile, path[0])
+                cb.add_payload(self.__parent.current_profile, path[0])
             self.refresh()
 
         @qtc.pyqtSlot()
         def remove(self):
             item = self.currentItem()
             if not item == None:
-                cb.remove_payload(SetupWidget.current_profile, item.text())
+                cb.remove_payload(self.__parent.current_profile, item.text())
             self.refresh()
 
     class TargetGroupBox(qtw.QGroupBox):
-        def __init__(self):
+        def __init__(self, parent):
+            self.__parent = parent
             super().__init__()
             self.setTitle("Target")
 
             self.setSizePolicy(qtw.QSizePolicy(qtw.QSizePolicy.Preferred, qtw.QSizePolicy.Maximum))
 
-            self.__target = cb.get_target(SetupWidget.current_profile)
+            self.__target = cb.get_target(self.__parent.current_profile)
 
             # widgets
             self.__status_label = qtw.QLabel(str(self.__target))
@@ -177,7 +184,7 @@ class SetupWidget(qtw.QWidget):
             elif path.is_dir():
                 self.__target = path
                 self.__status_label.setText(str(self.__target))
-                cb.set_target(SetupWidget.current_profile, str(self.__target))
+                cb.set_target(self.__parent.current_profile, str(self.__target))
             else:
                 error = qtw.QMessageBox()
                 error.setWindowTitle("Error")
@@ -188,7 +195,8 @@ class SetupWidget(qtw.QWidget):
     class ProfileGroupBox(qtw.QGroupBox):
         switch_profile = qtc.pyqtSignal(str)
 
-        def __init__(self):
+        def __init__(self, parent):
+            self.__parent = parent
             super().__init__()
             # set Title
             self.setTitle("Profile")
