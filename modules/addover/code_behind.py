@@ -34,6 +34,20 @@ def get_profile_names() -> list:
     data = load_data()
     return list(data["profiles"].keys())
 
+def delete_profile(profile: str):
+    data = load_data()
+    del data["profiles"][profile]
+    write_data(data)
+
+def rename_profile(old_profile: str, new_profile: str):
+    data = load_data()
+    if new_profile in data["profiles"]:
+        raise Exception(f"Profile {new_profile} already exist")
+
+    data["profiles"][new_profile] = data["profiles"][old_profile]
+    del data["profiles"][old_profile]
+    write_data(data)
+
 def get_payloads(profile: str) -> list:
     data = load_data()
     return data["profiles"][profile]["payload"]
