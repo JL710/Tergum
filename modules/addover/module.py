@@ -29,8 +29,6 @@ class Menu(qtw.QMenu):
 
 
 class MainWidget(qtw.QWidget):
-
-
     def __init__(self):
         super().__init__()
 
@@ -65,14 +63,18 @@ class MainWidget(qtw.QWidget):
 class SetupWidget(qtw.QWidget):
     # signal
     submit = qtc.pyqtSignal(str)
+    s_profile_reload = qtc.pyqtSignal()
 
     def __init__(self):
         super().__init__()
+        # slot / signal
+        self.s_profile_reload.connect(self.profile_change)
 
+        # some var
         self.__current_profile = cb.get_profile_names()[0]
 
         # widgets
-        self.__profile_group_box = self.ProfileGroupBox()
+        self.__profile_group_box = self.ProfileGroupBox(s_profile_reload=self.s_profile_reload, setup_widget = self)
         self.__profile_group_box.switch_profile.connect(self.on_profile_switch)
 
         self.__target_group_box = self.TargetGroupBox(parent=self)
@@ -113,18 +115,23 @@ class SetupWidget(qtw.QWidget):
         if shure == qm.Yes:  # the pass is validated by the user
             self.submit.emit(SetupWidget.current_profile)
 
-    def get_current_profile(self):
-        return self.__current_profile
-
     @property
     def current_profile(self):
         return self.__current_profile
+    @current_profile.setter
+    def current_profile(self, value):
+        print("setter")
+        self.__current_profile = value
 
     def on_profile_switch(self, profile: str):
         self.__current_profile = profile
         self.__payload_list.refresh()
         self.__target_group_box.reload()
-        print(profile)
+
+    def profile_change(self):
+        self.__payload_list.refresh()
+        self.__target_group_box.reload()
+        self.__profile_group_box.reload_combobox()
 
     class PayloadList(qtw.QListWidget):
         def __init__(self, parent):
@@ -206,8 +213,12 @@ class SetupWidget(qtw.QWidget):
     class ProfileGroupBox(qtw.QGroupBox):
         switch_profile = qtc.pyqtSignal(str)
 
-        def __init__(self):
+        def __init__(self, s_profile_reload: qtc.pyqtSignal, setup_widget):
             super().__init__()
+            # singnal and slots
+            self.s_profile_reload = s_profile_reload
+            self.setup_widget = setup_widget
+
             # set Title
             self.setTitle("Profile")
 
@@ -217,21 +228,99 @@ class SetupWidget(qtw.QWidget):
             self.__vstretch_sizePolicy.setHorizontalStretch(1)
             self.__combo_box.setSizePolicy(self.__vstretch_sizePolicy)
             self.__combo_box.currentTextChanged.connect(self.switch_profile)
-            self.__change_button = qtw.QPushButton("Change")
+            self.__edit_button = qtw.QPushButton("Edit")
+            self.__edit_button.clicked.connect(self.__on_change)
 
             # layout stuff
             self.__layout = qtw.QHBoxLayout()
             self.__layout.addWidget(self.__combo_box)
-            self.__layout.addWidget(self.__change_button)
+            self.__layout.addWidget(self.__edit_button)
 
             self.setLayout(self.__layout)
 
             self.reload_combobox()
         
-        def reload_combobox(self):
+        def reload_combobox(self): # TODO: set when possible to current profile
+            self.__combo_box.currentTextChanged.disconnect(self.switch_profile)
             self.__combo_box.clear()
             self.__combo_box.addItems(cb.get_profile_names())
-            self.switch_profile.emit(self.__combo_box.currentText()) # just to make shure everywhere is that right
+            self.__combo_box.currentTextChanged.connect(self.switch_profile)
+
+        def __on_change(self):
+            change_profile_popup = self.EditProfilesPopup(s_profile_reload=self.s_profile_reload, setup_widget=self.setup_widget)
+            change_profile_popup.exec()
+
+        class EditProfilesPopup(qtw.QDialog):
+            def __init__(self, s_profile_reload, setup_widget):
+                super().__init__()
+                # slot / signal
+                self.s_profile_reload = s_profile_reload
+                self.setup_widget = setup_widget
+
+                self.setWindowTitle("Edit Profiles")
+
+                self.__scroll_area = qtw.QScrollArea()
+                self.__scroll_widget = qtw.QWidget()
+                self.__scroll_widget.setLayout(self.__get_new_layout())
+                self.__scroll_area.setWidget(self.__scroll_widget)
+                self.__scroll_area.setWidgetResizable(True)
+
+                self.__layout = qtw.QVBoxLayout()
+                self.__layout.addWidget(self.__scroll_area)
+
+                self.setLayout(self.__layout)
+            
+            def __get_new_layout(self): 
+                layout = qtw.QVBoxLayout()
+                for profile in cb.get_profile_names():
+                    layout.addWidget(self.ProfileWidget(profile, s_profile_reload=self.s_profile_reload, setup_widget=self.setup_widget))
+                layout.addStretch()
+                return layout
+
+            class ProfileWidget(qtw.QWidget):  # TODO: make it work
+
+                def __init__(self, profile: str, s_profile_reload: qtc.pyqtSignal, setup_widget):
+                    super().__init__()
+                    # slot / signal
+                    self.s_profile_reload = s_profile_reload
+                    self.setup_widget = setup_widget
+
+                    self.__profile = profile
+
+                    # create widgets
+                    self.__line_edit = qtw.QLineEdit(self.__profile)
+                    self.__line_edit.setReadOnly(True)
+                    self.__line_edit.returnPressed.connect(self.__on_rename)
+                    self.__rename_button = qtw.QPushButton()
+                    self.__rename_button.setIcon(qtg.QIcon(str(Path("modules", "addover", "icon_rename.png"))))
+                    self.__rename_button.clicked.connect(self.__on_rename)
+                    self.__delete_button = qtw.QPushButton()
+                    self.__delete_button.setIcon(qtg.QIcon(str(Path("modules", "addover", "icon_trashcan.png"))))
+                    self.__delete_button.clicked.connect(self.__on_delete)
+
+                    # layout stuff
+                    self.__layout = qtw.QHBoxLayout()
+                    self.__layout.setContentsMargins(9, 3, 3, 3)
+                    self.__layout.addWidget(self.__line_edit)
+                    self.__layout.addWidget(self.__rename_button)
+                    self.__layout.addWidget(self.__delete_button)
+                    self.setLayout(self.__layout)
+
+                def __on_rename(self):
+                    if self.__line_edit.isReadOnly():
+                        self.__line_edit.setReadOnly(False)
+                    else:
+                        self.__line_edit.setReadOnly(True)
+                        if not self.__profile == self.__line_edit.text():
+                            cb.rename_profile(self.__profile, self.__line_edit.text())
+                            if self.__profile == self.setup_widget.current_profile: # rename current profile as well
+                                self.setup_widget.current_profile = self.__line_edit.text()
+                            self.__profile = self.__line_edit.text()
+                            self.s_profile_reload.emit()
+
+                def __on_delete(self):
+                    print("delete")
+                    # TODO: erverything
 
 
 
