@@ -120,7 +120,6 @@ class SetupWidget(qtw.QWidget):
         return self.__current_profile
     @current_profile.setter
     def current_profile(self, value):
-        print("setter")
         self.__current_profile = value
 
     def on_profile_switch(self, profile: str):
@@ -251,17 +250,21 @@ class SetupWidget(qtw.QWidget):
             change_profile_popup.exec()
 
         class EditProfilesPopup(qtw.QDialog):
+            s_delete_profile = qtc.pyqtSignal(str)
+
             def __init__(self, s_profile_reload, setup_widget):
                 super().__init__()
                 # slot / signal
                 self.s_profile_reload = s_profile_reload
+                self.s_delete_profile.connect(self.__on_delete_profile)
                 self.setup_widget = setup_widget
 
                 self.setWindowTitle("Edit Profiles")
 
                 self.__scroll_area = qtw.QScrollArea()
                 self.__scroll_widget = qtw.QWidget()
-                self.__scroll_widget.setLayout(self.__get_new_layout())
+                self.__scroll_widget_layout = self.__get_new_layout()
+                self.__scroll_widget.setLayout(self.__scroll_widget_layout)
                 self.__scroll_area.setWidget(self.__scroll_widget)
                 self.__scroll_area.setWidgetResizable(True)
 
@@ -273,16 +276,38 @@ class SetupWidget(qtw.QWidget):
             def __get_new_layout(self): 
                 layout = qtw.QVBoxLayout()
                 for profile in cb.get_profile_names():
-                    layout.addWidget(self.ProfileWidget(profile, s_profile_reload=self.s_profile_reload, setup_widget=self.setup_widget))
+                    layout.addWidget(self.ProfileWidget(
+                        profile, 
+                        s_profile_reload=self.s_profile_reload, 
+                        s_delete_profile=self.s_delete_profile, 
+                        setup_widget=self.setup_widget))
                 layout.addStretch()
                 return layout
 
-            class ProfileWidget(qtw.QWidget):  # TODO: make it work
+            def reload(self):
+                qtw.QWidget().setLayout(self.__scroll_widget_layout)
+                self.__scroll_widget_layout = self.__get_new_layout()
+                self.__scroll_widget.setLayout(self.__scroll_widget_layout)
 
-                def __init__(self, profile: str, s_profile_reload: qtc.pyqtSignal, setup_widget):
+            @qtc.pyqtSlot(str)
+            def __on_delete_profile(self, profile: str):
+                # check if only one profile is left 
+                if len(cb.get_profile_names()) <= 1:
+                    return
+
+                if profile == self.setup_widget.current_profile: # change if needed the current profile
+                    self.setup_widget.current_profile = cb.get_profile_names()[0] if cb.get_profile_names()[0] != profile else cb.get_profile_names()[1]
+                cb.delete_profile(profile=profile)
+                self.setup_widget.profile_change() # reload all widgets for SetupWiget
+                self.reload()
+
+            class ProfileWidget(qtw.QWidget):
+
+                def __init__(self, profile: str, s_profile_reload: qtc.pyqtSignal, s_delete_profile, setup_widget):
                     super().__init__()
                     # slot / signal
                     self.s_profile_reload = s_profile_reload
+                    self.s_delete_profile = s_delete_profile
                     self.setup_widget = setup_widget
 
                     self.__profile = profile
@@ -320,7 +345,7 @@ class SetupWidget(qtw.QWidget):
 
                 def __on_delete(self):
                     print("delete")
-                    # TODO: erverything
+                    self.s_delete_profile.emit(self.__profile)
 
 
 
