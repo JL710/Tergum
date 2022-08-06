@@ -239,10 +239,12 @@ class SetupWidget(qtw.QWidget):
 
             self.reload_combobox()
         
-        def reload_combobox(self): # TODO: set when possible to current profile
+        def reload_combobox(self):
             self.__combo_box.currentTextChanged.disconnect(self.switch_profile)
             self.__combo_box.clear()
             self.__combo_box.addItems(cb.get_profile_names())
+            if self.setup_widget.current_profile in cb.get_profile_names(): # is possible change to current
+                self.__combo_box.setCurrentText(self.setup_widget.current_profile)
             self.__combo_box.currentTextChanged.connect(self.switch_profile)
 
         def __on_change(self):
@@ -301,7 +303,7 @@ class SetupWidget(qtw.QWidget):
                 self.setup_widget.profile_change() # reload all widgets for SetupWiget
                 self.reload()
 
-            class ProfileWidget(qtw.QWidget):
+            class ProfileWidget(qtw.QWidget):  # TODO: new profile feature
 
                 def __init__(self, profile: str, s_profile_reload: qtc.pyqtSignal, s_delete_profile, setup_widget):
                     super().__init__()
