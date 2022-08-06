@@ -304,7 +304,6 @@ class SetupWidget(qtw.QWidget):
                 self.reload()
 
             class ProfileWidget(qtw.QWidget):  # TODO: new profile feature
-
                 def __init__(self, profile: str, s_profile_reload: qtc.pyqtSignal, s_delete_profile, setup_widget):
                     super().__init__()
                     # slot / signal
