@@ -1,7 +1,9 @@
+from asyncore import write
 import json
 from pathlib import Path
 
 import os
+import profile
 
 
 # data handeling
@@ -35,6 +37,22 @@ def rename_profile(old_profile: str, new_profile: str):
 
     data["profiles"][new_profile] = data["profiles"][old_profile]
     del data["profiles"][old_profile]
+    write_data(data)
+
+def new_profile():
+    profile_names = get_profile_names()
+    i = 0
+    while True:
+        if not "new-profile" in profile_names:
+            data = load_data()
+            data["profiles"]["new-profile"] = {"target": "", "payload": []}
+            break
+        elif not f"new-profile-{i}" in profile_names:
+            data = load_data()
+            data["profiles"][f"new-profile-{i}"] = {"target": "", "payload": []}
+            break
+        else:
+            i += 1
     write_data(data)
 
 # Target
