@@ -113,6 +113,10 @@ def start(profile: str):
         yield {"event-message": f"event: Destination {get_target(profile)} does not exist", "percentage": 100, "finished": True}
         return
 
+    if len(get_payload(profile)) <= 0:
+        yield {"event-message": f"event: No payload is available", "percentage": 100, "finished": True}
+        return
+
     percent_factor = 100 / len(get_payload(profile))
 
     for index_payload, payload in enumerate(get_payload(profile)):
