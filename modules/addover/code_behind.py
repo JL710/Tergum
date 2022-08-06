@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 
 import os
-import profile
 
 
 # data handeling
@@ -124,8 +123,14 @@ def start(profile: str):
         
         yield {"event-message": f"Begin with: {payload}", "percentage": int(index_payload * percent_factor), "finished": False}
 
+        destination = Path(get_target(profile) / Path(payload).name)
+
+        if Path(payload).is_file() and not destination.is_file():
+            with open(destination, "w") as file:
+                pass # just to create the file if not already exists -> else xcopy will need user input
+
         command = get_command().replace("SOURCE", str(Path(payload)))
-        command = command.replace("DESTINATION", str(Path(get_target(profile) / Path(payload).name)))
+        command = command.replace("DESTINATION", str(destination))
         output = os.popen(command).read()
         yield {"event-message": f"xcopy output: {output}", "percentage": int(index_payload * percent_factor), "finished": False}
         
