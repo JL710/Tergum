@@ -45,11 +45,11 @@ def new_profile():
     while True:
         if not "new-profile" in profile_names:
             data = load_data()
-            data["profiles"]["new-profile"] = {"target": "", "payload": []}
+            data["profiles"]["new-profile"] = {"target": str(Path.home()), "payload": []}
             break
         elif not f"new-profile-{i}" in profile_names:
             data = load_data()
-            data["profiles"][f"new-profile-{i}"] = {"target": "", "payload": []}
+            data["profiles"][f"new-profile-{i}"] = {"target": str(Path.home()), "payload": []}
             break
         else:
             i += 1
