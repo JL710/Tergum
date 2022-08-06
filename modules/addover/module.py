@@ -103,7 +103,7 @@ class SetupWidget(qtw.QWidget):
 
     @qtc.pyqtSlot()
     def on_start(self):
-        if not cb.get_target(SetupWidget.current_profile).is_dir():
+        if not cb.get_target(self.__current_profile).is_dir():
             error = qtw.QMessageBox()
             error.setWindowTitle("Error")
             error.setText("Target does not exist!")
@@ -111,9 +111,9 @@ class SetupWidget(qtw.QWidget):
             error.exec_()
             return
         qm = qtw.QMessageBox
-        shure = qm.question(self, "Make Shure", f'Is the Target "{str(cb.get_target(SetupWidget.current_profile))}" correct?', qm.Yes | qm.No)
+        shure = qm.question(self, "Make Shure", f'Is the Target "{str(cb.get_target(self.__current_profile))}" correct?', qm.Yes | qm.No)
         if shure == qm.Yes:  # the pass is validated by the user
-            self.submit.emit(SetupWidget.current_profile)
+            self.submit.emit(self.__current_profile)
 
     @property
     def current_profile(self):
@@ -145,9 +145,9 @@ class SetupWidget(qtw.QWidget):
 
         @qtc.pyqtSlot()
         def add_dir(self):
-            path = qtw.QFileDialog.getExistingDirectory()
+            path = Path(qtw.QFileDialog.getExistingDirectory())
             if path != "":  # checks if user canceled selection without any select
-                cb.add_payload(self.__parent.current_profile, path)
+                cb.add_payload(self.__parent.current_profile, str(path))
             self.refresh()
 
         @qtc.pyqtSlot()
@@ -155,7 +155,7 @@ class SetupWidget(qtw.QWidget):
             path = qtw.QFileDialog.getOpenFileName()
             print(path[0])
             if Path(path[0]).is_file():
-                cb.add_payload(self.__parent.current_profile, path[0])
+                cb.add_payload(self.__parent.current_profile, str(Path(path[0])))
             self.refresh()
 
         @qtc.pyqtSlot()
@@ -303,6 +303,11 @@ class SetupWidget(qtw.QWidget):
             def __on_delete_profile(self, profile: str):
                 # check if only one profile is left 
                 if len(cb.get_profile_names()) <= 1:
+                    error = qtw.QMessageBox()
+                    error.setWindowTitle("Error")
+                    error.setText("Only one Profile is left. You need at least one.")
+                    error.setIcon(qtw.QMessageBox.Critical)
+                    error.exec_()
                     return
 
                 if profile == self.setup_widget.current_profile: # change if needed the current profile
@@ -344,6 +349,16 @@ class SetupWidget(qtw.QWidget):
                     if self.__line_edit.isReadOnly():
                         self.__line_edit.setReadOnly(False)
                     else:
+                        # check if name already exists
+                        if self.__line_edit.text() in cb.get_profile_names():
+                            error = qtw.QMessageBox()
+                            error.setWindowTitle("Error")
+                            error.setText(f'Profile "{self.__line_edit.text()}" already exists.')
+                            error.setIcon(qtw.QMessageBox.Critical)
+                            error.exec_()
+                            return
+
+                        # do if new name is checked
                         self.__line_edit.setReadOnly(True)
                         if not self.__profile == self.__line_edit.text():
                             cb.rename_profile(self.__profile, self.__line_edit.text())
@@ -353,7 +368,6 @@ class SetupWidget(qtw.QWidget):
                             self.s_profile_reload.emit()
 
                 def __on_delete(self):
-                    print("delete")
                     self.s_delete_profile.emit(self.__profile)
 
 
@@ -441,7 +455,7 @@ class ActionWidget(qtw.QWidget):
             self.setWidgetResizable(True) # allows the Wiget to resize when conent(Label) changes
 
         def add_text(self, text: str):
-            self.__label.setText(text + "\n" + self.__label.text())
+            self.__label.setText(self.__label.text() + "\n" + text)
 
         def set_text(self, text: str):
             self.__label.setText(text)
