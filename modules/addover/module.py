@@ -140,7 +140,7 @@ class SetupWidget(qtw.QWidget):
 
         def refresh(self):
             self.clear()
-            for load in cb.get_payloads(self.__parent.current_profile):
+            for load in cb.get_payload(self.__parent.current_profile):
                 self.addItem(load)
 
         @qtc.pyqtSlot()
@@ -269,9 +269,12 @@ class SetupWidget(qtw.QWidget):
                 self.__scroll_widget.setLayout(self.__scroll_widget_layout)
                 self.__scroll_area.setWidget(self.__scroll_widget)
                 self.__scroll_area.setWidgetResizable(True)
+                self.__new_profile_button = qtw.QPushButton("New")
+                self.__new_profile_button.clicked.connect(self.__on_new_profile)
 
                 self.__layout = qtw.QVBoxLayout()
                 self.__layout.addWidget(self.__scroll_area)
+                self.__layout.addWidget(self.__new_profile_button)
 
                 self.setLayout(self.__layout)
             
@@ -285,6 +288,11 @@ class SetupWidget(qtw.QWidget):
                         setup_widget=self.setup_widget))
                 layout.addStretch()
                 return layout
+
+            def __on_new_profile(self):
+                cb.new_profile()
+                self.setup_widget.profile_change()
+                self.reload()
 
             def reload(self):
                 qtw.QWidget().setLayout(self.__scroll_widget_layout)
