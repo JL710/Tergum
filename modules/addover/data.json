@@ -1,1 +1,1 @@
-{"Target": "", "payload": [], "command": "XCOPY SOURCE DESTINATION /E /D /C /Y /v /q /k /r /h /i", "default-command": "XCOPY SOURCE DESTINATION /E /D /C /Y /v /q /k /r /h /i"}
+{"profiles": {"profile1": {"target": "", "payload": []}}, "command": "XCOPY SOURCE DESTINATION /Y /v /k /r /h /i /s", "default-command": "XCOPY SOURCE DESTINATION /Y /v /k /r /h /i /s"}

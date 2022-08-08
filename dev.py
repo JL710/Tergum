@@ -2,7 +2,6 @@ import argparse
 import os, shutil
 from pathlib import Path
 import json
-import jinja2
 
 
 # setup the main parser
