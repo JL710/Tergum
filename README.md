@@ -30,3 +30,5 @@ Das Menu ist entweder `None` oder `QMenu`. Ist es `QMenu` bekommt `Menu` zudem d
 Die Datei `load_from_module.py` beinhaltet eine Funktion, die die Module lädt. 
 
 `dev.py` beinhaltet eine CLI zum testen von bestimmten Szenarien. Erstellt automatisch leere Module etc. . Kann die tests.py der Module ansteuern.
+
+Icons teilweise von `https://icons8.de`
