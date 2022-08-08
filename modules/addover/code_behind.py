@@ -1,4 +1,3 @@
-from asyncore import write
 import json
 from pathlib import Path
 
@@ -105,6 +104,22 @@ def reset_command():
     data["command"] = data["default-command"]
     with open(Path("modules", "addover", "data.json"), "w") as f:
         json.dump(data, f)
+
+# check cyclic
+def check_cyclic(profile: str) -> bool:
+    # get target
+    target = get_target(profile)
+    # get payload
+    payload = get_payload(profile)
+    # check
+    for load in payload:
+        if Path(load).is_file():
+            if str(Path(load).parent) == str(target.parent):
+                return True 
+        elif str(Path(load)) in str(target):
+            return True
+        
+    return False
 
 # start / sync stuff / work stuff
 def start(profile: str):

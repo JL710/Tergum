@@ -5,6 +5,14 @@ import modules.addover.code_behind as cb
 from pathlib import Path
 
 
+def error_popup(title: str="Error", prompt: str="Error"):
+    error = qtw.QMessageBox()
+    error.setWindowTitle(title)
+    error.setText(prompt)
+    error.setIcon(qtw.QMessageBox.Critical)
+    error.exec_()
+
+
 class Menu(qtw.QMenu):
     def __init__(self, main_widget):
         super().__init__("Add Over")
@@ -112,6 +120,11 @@ class SetupWidget(qtw.QWidget):
             error.setText("Target does not exist!")
             error.setIcon(qtw.QMessageBox.Critical)
             error.exec_()
+            return
+
+        # check for cyclic
+        if cb.check_cyclic(self.__current_profile):
+            error_popup("Error", "Error with cyclic copy.\nThe target and payload interfear with each other.")
             return
 
         # ask user if the target is correct -> popup
