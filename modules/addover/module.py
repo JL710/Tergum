@@ -15,6 +15,7 @@ class Menu(qtw.QMenu):
         self.__reset_command_action = qtw.QAction("Reset Command")
         self.__reset_command_action.triggered.connect(self.__on_reset_command)
 
+        # add actions to self
         self.addAction(self.__edit_command_action)
         self.addAction(self.__reset_command_action)
 
@@ -32,7 +33,7 @@ class MainWidget(qtw.QWidget):
     def __init__(self):
         super().__init__()
 
-        # Stack shit
+        # Stack stuff
         self.__startup_widget = SetupWidget()
         self.__action_widget = ActionWidget()
         self.__stack_widget = qtw.QStackedWidget(self)
@@ -52,7 +53,7 @@ class MainWidget(qtw.QWidget):
 
     def __switch(self, profile: str=None):
         # swich stack
-        if self.__stack_widget.currentIndex() == 0:
+        if self.__stack_widget.currentIndex() == 0:  # check wich widget is active
             self.__stack_widget.setCurrentIndex(1)
             self.__action_widget.start.emit(profile)        
         else:
@@ -68,7 +69,7 @@ class SetupWidget(qtw.QWidget):
     def __init__(self):
         super().__init__()
         # slot / signal
-        self.s_profile_reload.connect(self.profile_change)
+        self.s_profile_reload.connect(self.on_profile_change)
 
         # some var
         self.__current_profile = cb.get_profile_names()[0]
@@ -103,6 +104,8 @@ class SetupWidget(qtw.QWidget):
 
     @qtc.pyqtSlot()
     def on_start(self):
+        """on_start will start check everything on inputlevel and emit signal to MainWidget"""
+        # check if target exists -> else error popup
         if not cb.get_target(self.__current_profile).is_dir():
             error = qtw.QMessageBox()
             error.setWindowTitle("Error")
@@ -110,6 +113,8 @@ class SetupWidget(qtw.QWidget):
             error.setIcon(qtw.QMessageBox.Critical)
             error.exec_()
             return
+
+        # ask user if the target is correct -> popup
         qm = qtw.QMessageBox
         shure = qm.question(self, "Make Shure", f'Is the Target "{str(cb.get_target(self.__current_profile))}" correct?', qm.Yes | qm.No)
         if shure == qm.Yes:  # the pass is validated by the user
@@ -123,16 +128,19 @@ class SetupWidget(qtw.QWidget):
         self.__current_profile = value
 
     def on_profile_switch(self, profile: str):
+        """change profile"""
         self.__current_profile = profile
         self.__payload_list.refresh()
         self.__target_group_box.reload()
 
-    def profile_change(self):
+    def on_profile_change(self):
+        """reload widgets -> should be used when something with profiles changed"""
         self.__payload_list.refresh()
         self.__target_group_box.reload()
         self.__profile_group_box.reload_combobox()
 
     class PayloadList(qtw.QListWidget):
+        """Widget that lists the Payload"""
         def __init__(self, parent):
             self.__parent = parent
             super().__init__()
@@ -153,8 +161,7 @@ class SetupWidget(qtw.QWidget):
         @qtc.pyqtSlot()
         def add_file(self):
             path = qtw.QFileDialog.getOpenFileName()
-            print(path[0])
-            if Path(path[0]).is_file():
+            if Path(path[0]).is_file():  # check if path exists
                 cb.add_payload(self.__parent.current_profile, str(Path(path[0])))
             self.refresh()
 
@@ -166,13 +173,15 @@ class SetupWidget(qtw.QWidget):
             self.refresh()
 
     class TargetGroupBox(qtw.QGroupBox):
+        """Groupbox with all target related widgets"""
         def __init__(self, parent):
             self.__parent = parent
             super().__init__()
+            # self related configuration
             self.setTitle("Target")
-
             self.setSizePolicy(qtw.QSizePolicy(qtw.QSizePolicy.Preferred, qtw.QSizePolicy.Maximum))
 
+            # not widget vars
             self.__target = cb.get_target(self.__parent.current_profile)
 
             # widgets
@@ -190,11 +199,13 @@ class SetupWidget(qtw.QWidget):
             self.setLayout(self.__layout)
 
         def reload(self):
+            """reload target -> change label"""
             self.__target = cb.get_target(self.__parent.current_profile)
             self.__status_label.setText(str(self.__target))
 
         @qtc.pyqtSlot()
         def on_change_target(self):
+            """handels the change of the target (GUI level)"""
             path = Path(qtw.QFileDialog.getExistingDirectory(self, "New Target"))
             if not path.is_absolute():
                 pass # needs to be checked -> if user cancels the selection process
@@ -205,11 +216,13 @@ class SetupWidget(qtw.QWidget):
             else:
                 error = qtw.QMessageBox()
                 error.setWindowTitle("Error")
-                error.setText("Path does not exist!")
+                error.setText("Path does not exist or is a file!")
                 error.setIcon(qtw.QMessageBox.Critical)
                 error.exec_()
 
     class ProfileGroupBox(qtw.QGroupBox):
+        """Groupbox within the profile related widgets"""
+
         switch_profile = qtc.pyqtSignal(str)
 
         def __init__(self, s_profile_reload: qtc.pyqtSignal, setup_widget):
@@ -248,10 +261,13 @@ class SetupWidget(qtw.QWidget):
             self.__combo_box.currentTextChanged.connect(self.switch_profile)
 
         def __on_change(self):
+            """launches the profile popup -> rename / delete"""
             change_profile_popup = self.EditProfilesPopup(s_profile_reload=self.s_profile_reload, setup_widget=self.setup_widget)
             change_profile_popup.exec()
 
         class EditProfilesPopup(qtw.QDialog):
+            """popup where the profiles can be manages -> renamed / deleted"""
+
             s_delete_profile = qtc.pyqtSignal(str)
 
             def __init__(self, s_profile_reload, setup_widget):
@@ -261,8 +277,10 @@ class SetupWidget(qtw.QWidget):
                 self.s_delete_profile.connect(self.__on_delete_profile)
                 self.setup_widget = setup_widget
 
+                # set window title
                 self.setWindowTitle("Edit Profiles")
 
+                # widgets
                 self.__scroll_area = qtw.QScrollArea()
                 self.__scroll_widget = qtw.QWidget()
                 self.__scroll_widget_layout = self.__get_new_layout()
@@ -272,6 +290,7 @@ class SetupWidget(qtw.QWidget):
                 self.__new_profile_button = qtw.QPushButton("New")
                 self.__new_profile_button.clicked.connect(self.__on_new_profile)
 
+                # layout
                 self.__layout = qtw.QVBoxLayout()
                 self.__layout.addWidget(self.__scroll_area)
                 self.__layout.addWidget(self.__new_profile_button)
@@ -279,6 +298,7 @@ class SetupWidget(qtw.QWidget):
                 self.setLayout(self.__layout)
             
             def __get_new_layout(self): 
+                """will create a new layout for the scroll widget"""
                 layout = qtw.QVBoxLayout()
                 for profile in cb.get_profile_names():
                     layout.addWidget(self.ProfileWidget(
@@ -291,13 +311,14 @@ class SetupWidget(qtw.QWidget):
 
             def __on_new_profile(self):
                 cb.new_profile()
-                self.setup_widget.profile_change()
+                self.setup_widget.on_profile_change()
                 self.reload()
 
             def reload(self):
-                qtw.QWidget().setLayout(self.__scroll_widget_layout)
-                self.__scroll_widget_layout = self.__get_new_layout()
-                self.__scroll_widget.setLayout(self.__scroll_widget_layout)
+                """reload the content of the scroll widget"""
+                qtw.QWidget().setLayout(self.__scroll_widget_layout)  # remove old layout
+                self.__scroll_widget_layout = self.__get_new_layout()  # get new layout
+                self.__scroll_widget.setLayout(self.__scroll_widget_layout)  # set new layout
 
             @qtc.pyqtSlot(str)
             def __on_delete_profile(self, profile: str):
@@ -313,10 +334,11 @@ class SetupWidget(qtw.QWidget):
                 if profile == self.setup_widget.current_profile: # change if needed the current profile
                     self.setup_widget.current_profile = cb.get_profile_names()[0] if cb.get_profile_names()[0] != profile else cb.get_profile_names()[1]
                 cb.delete_profile(profile=profile)
-                self.setup_widget.profile_change() # reload all widgets for SetupWiget
+                self.setup_widget.on_profile_change() # reload all widgets for SetupWiget
                 self.reload()
 
-            class ProfileWidget(qtw.QWidget):  # TODO: new profile feature
+            class ProfileWidget(qtw.QWidget):
+                """A Widget that represents a single profile"""
                 def __init__(self, profile: str, s_profile_reload: qtc.pyqtSignal, s_delete_profile, setup_widget):
                     super().__init__()
                     # slot / signal
@@ -324,6 +346,7 @@ class SetupWidget(qtw.QWidget):
                     self.s_delete_profile = s_delete_profile
                     self.setup_widget = setup_widget
 
+                    # self related var
                     self.__profile = profile
 
                     # create widgets
@@ -346,7 +369,7 @@ class SetupWidget(qtw.QWidget):
                     self.setLayout(self.__layout)
 
                 def __on_rename(self):
-                    if self.__line_edit.isReadOnly():
+                    if self.__line_edit.isReadOnly():  # check if changes need to be saved or widget needs to allow change
                         self.__line_edit.setReadOnly(False)
                     else:
                         # check if name already exists
