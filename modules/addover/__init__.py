@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 from PyQt5 import QtGui as qtg
-import modules.addover.code_behind as cb
+from . import code_behind as cb
 from pathlib import Path
 
 
