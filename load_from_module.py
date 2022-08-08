@@ -15,14 +15,14 @@ def load_modules() -> list:
                 module_dict["title"] = json.load(f)["title"]
             
             # load widget
-            module_import = importlib.import_module(f"modules.{module_dir}.module")
-            module_dict["widget"] = module_import.MainWidget()
+            package_import = importlib.import_module(f"modules.{module_dir}")
+            module_dict["widget"] = package_import.MainWidget()
 
             # load menu
-            if module_import.Menu == None:
+            if package_import.Menu == None:
                 module_dict["menu"] = None
             else:
-                module_dict["menu"] = module_import.Menu(module_dict["widget"])
+                module_dict["menu"] = package_import.Menu(module_dict["widget"])
         
             modules.append(module_dict)
     return modules
