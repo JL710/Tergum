@@ -9,7 +9,7 @@ Software für das sichern von Dateien, bzw. diese zu Synchronisieren.
 |
 +-- modules
 |   +-- module_dir
-|       |-- module.py
+|       |-- __init__.py
 |       |-- test.py
 |       |-- data.json / settings.json
 |       |-- otherfiles...
