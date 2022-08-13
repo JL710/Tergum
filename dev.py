@@ -52,7 +52,7 @@ if args.subcommand_1 == "module":
         module_dir = Path("modules", args.name)
         module_dir.mkdir() # create dir
         
-        with open(module_dir / "module.py", "w") as f:
+        with open(module_dir / "__init__.py", "w") as f:
             f.write(
 """from PyQt5 import QtWidgets
 
