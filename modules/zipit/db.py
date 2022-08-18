@@ -16,7 +16,7 @@ class Profile(Base):
     __tablename__ = "profiles"
 
     id = sqla.Column(sqla.Integer, primary_key=True)
-    name = sqla.Column(sqla.String)
+    name = sqla.Column(sqla.String, unique=True, nullable=False)
 
     cargo = orm.relationship("Cargo", back_populates="profile", cascade="all, delete, delete-orphan")
 
@@ -28,9 +28,9 @@ class Cargo(Base):
     __tablename__ = "cargos"
 
     id = sqla.Column(sqla.Integer, primary_key=True)
-    path = sqla.Column(sqla.String)
+    path = sqla.Column(sqla.String, nullable=False)
 
-    profile_id = sqla.Column(sqla.Integer, sqla.ForeignKey("profiles.id"))
+    profile_id = sqla.Column(sqla.Integer, sqla.ForeignKey("profiles.id"), nullable=False)
 
     profile = orm.relationship("Profile", back_populates="cargo")
 
@@ -47,11 +47,9 @@ class DBManager:
         @functools.wraps(method)
         def inner(*args, **kwargs):
             try:
-                DBManager.__engine.connect()
-                DBManager.__engine.execute("")
+                return method(*args, **kwargs)
             except OperationalError:
                 Base.metadata.create_all(DBManager.__engine)
-                print("create")
             return method(*args, **kwargs)
         return inner
 
@@ -79,6 +77,13 @@ class DBManager:
             raise DatabaseError(f"Profile {name} does not exist")
         DBManager.__session.delete(profile)
         DBManager.__session.commit()
+
+    # check if profile exists in the database
+    @__check_db_exist
+    def profile_exists(name) -> bool:
+        if DBManager.__session.query(Profile).filter_by(name=name).one_or_none() == None:
+            return False
+        return True
 
     def recreate_db():
         Base.metadata.create_all(DBManager.__engine)
