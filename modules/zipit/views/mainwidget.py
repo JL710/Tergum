@@ -32,8 +32,4 @@ class MainWidget(qtw.QWidget):
         self.__layout.addWidget(self.__cargo_groupbox)
         self.__layout.addWidget(self.__startbutton)
         self.setLayout(self.__layout)
-
-    @qtc.pyqtSlot(str)
-    def new_profile(self, profile: str):
-        DBManager.new_profile(name=profile)
-        self.load_profile_signal.emit(profile)
+        
