@@ -1,4 +1,4 @@
-import functools
+import functools, typing
 from pathlib import Path
 from sqlite3 import DatabaseError
 
@@ -35,7 +35,7 @@ class Cargo(Base):
     profile = orm.relationship("Profile", back_populates="cargo")
 
     def __repr__(self) -> str:
-        return f"<Cargo id={self.id} path={self.path} profile_id={self.profile_id} cargo={self.cargo}>"
+        return f"<Cargo id={self.id} path={self.path} profile_id={self.profile_id}>"
 
 
 class DBManager:
@@ -58,7 +58,6 @@ class DBManager:
         print(DBManager.__session.query(Profile).filter_by(name=name).all())
         if DBManager.__session.query(Profile).filter_by(name=name).all() != []:
             raise DatabaseError(f"Profile {name} already exists")
-        print(name)
         profile = Profile(name=name)
         DBManager.__session.add(profile)
         DBManager.__session.commit()
@@ -84,6 +83,26 @@ class DBManager:
         if DBManager.__session.query(Profile).filter_by(name=name).one_or_none() == None:
             return False
         return True
+
+    @__check_db_exist
+    def get_profiles() -> typing.List[str]:
+        profile_objects = DBManager.__session.query(Profile).all()
+        profile_names = [profile.name for profile in profile_objects]
+        return profile_names
+
+    def get_cargo(profile) -> typing.List[Path]:
+        profile_obj = DBManager.__session.query(Profile).filter_by(name=profile).one()
+        cargo_obj = profile_obj.cargo
+        path_list = []
+        for c in cargo_obj:
+            path_list.append(c.path)
+        print(path_list)
+    
+    def add_cargo(profile, path):
+        profile_obj = DBManager.__session.query(Profile).filter_by(name=profile).one()
+        new_cargo = Cargo(path=path)
+        profile_obj.cargo = profile_obj.cargo + [new_cargo]
+        DBManager.__session.commit()
 
     def recreate_db():
         Base.metadata.create_all(DBManager.__engine)
