@@ -43,15 +43,29 @@ class ProfileBox(qtw.QGroupBox):
     def __on_new(self):
         print("on_new")
         popup = NewProfileName()
-        popup.submit_signal.connect(self.__mainwidget.new_profile)
+        popup.submit_signal.connect(self.__on_new_submit)
         popup.submit_signal.connect(self.refresh_combobox)
         popup.exec()
 
+    def __on_new_submit(self, profile):
+        DBManager.new_profile(name=profile)
+        self.__mainwidget.load_profile_signal.emit(profile)
+
     def __on_rename(self):
-        print("on_rename")
+        print("on_rename") # TODO: everything -> maby use NewProfileName to get the new name -> should work perfectly
 
     def __on_delete(self):
-        print("on_delete")
+        profiles = DBManager.get_profiles()
+        if len(profiles) <= 1:
+            # open error popup
+            messagebox = qtw.QMessageBox()
+            messagebox.setWindowTitle("Error")
+            messagebox.setText(f'Only one profile is left.')
+            messagebox.setIcon(qtw.QMessageBox.Critical)
+            messagebox.exec_()
+        DBManager.delete_profile(self.__combobox.currentText())
+        self.__mainwidget.load_profile_signal.emit(profiles[0])
+        self.refresh_combobox(profiles[0])
 
     @qtc.pyqtSlot(str)
     def refresh_combobox(self, profile: str|None=None):
@@ -60,7 +74,7 @@ class ProfileBox(qtw.QGroupBox):
             if DBManager.profile_exists(self.__combobox.currentText()):
                 profile = self.__combobox.currentText()
             else:
-                profile = DBManager.get_profiles()[0]
+                profile = DBManager.get_profiles()[0] # FIXME: emit to other widgets the new current profile
 
         if not DBManager.profile_exists(profile):
             raise DatabaseError(f'Profile "{profile}" does not exist. Checks failed.')
