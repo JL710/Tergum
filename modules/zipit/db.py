@@ -19,9 +19,10 @@ class Profile(Base):
     name = sqla.Column(sqla.String, unique=True, nullable=False)
 
     cargo = orm.relationship("Cargo", back_populates="profile", cascade="all, delete, delete-orphan")
+    target = orm.relationship("Target", back_populates="profile", cascade="all, delete, delete-orphan", uselist=False)
 
     def __repr__(self) -> str:
-        return f"<Profile id={self.id} name={self.name} cargo={self.cargo}>"
+        return f"<Profile id={self.id} name={self.name} target={self.target} cargo={self.cargo}>"
 
 
 class Cargo(Base):
@@ -36,6 +37,20 @@ class Cargo(Base):
 
     def __repr__(self) -> str:
         return f"<Cargo id={self.id} path={self.path} profile_id={self.profile_id}>"
+
+
+class Target(Base):
+    __tablename__ = "targets"
+
+    id = sqla.Column(sqla.Integer, primary_key=True)
+    path = sqla.Column(sqla.String, nullable=False)
+
+    profile_id = sqla.Column(sqla.Integer, sqla.ForeignKey("profiles.id"), nullable=False, unique=True)
+
+    profile = orm.relationship("Profile", back_populates="target")
+
+    def __repr__(self) -> str:
+        return f"<Target id={self.id} path={self.path} profile_id={self.profile_id}>"
 
 
 class DBManager:
@@ -90,6 +105,7 @@ class DBManager:
         profile_names = [profile.name for profile in profile_objects]
         return profile_names
 
+    @__check_db_exist
     def get_cargo(profile) -> typing.List[Path]:
         profile_obj = DBManager.__session.query(Profile).filter_by(name=profile).one()
         cargo_obj = profile_obj.cargo
@@ -98,11 +114,32 @@ class DBManager:
             path_list.append(c.path)
         print(path_list)
     
-    def add_cargo(profile, path):
+    @__check_db_exist
+    def add_cargo(profile: str, path: str):
         profile_obj = DBManager.__session.query(Profile).filter_by(name=profile).one()
         new_cargo = Cargo(path=path)
         profile_obj.cargo = profile_obj.cargo + [new_cargo]
         DBManager.__session.commit()
+
+    @__check_db_exist
+    def set_target(profile: str, target: str):
+        """Set the target/destination for the profile"""
+        profile_obj = DBManager.__session.query(Profile).filter_by(name=profile).one_or_none()
+        if profile_obj.target == None:
+            target_obj = Target(path=target)
+        else:
+            target_obj = profile_obj.target
+        target_obj.path = target
+        profile_obj.target = target_obj
+        DBManager.__session.commit()
+
+    @__check_db_exist
+    def get_target(profile: str) -> Path:
+        profile_obj = DBManager.__session.query(Profile).filter_by(name=profile).one()
+        target_obj = profile_obj.target
+        if target_obj == None:
+            return None
+        return target_obj.path
 
     def recreate_db():
         Base.metadata.create_all(DBManager.__engine)
