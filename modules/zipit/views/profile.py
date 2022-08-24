@@ -46,7 +46,6 @@ class ProfileBox(qtw.QGroupBox):
         self.__mainwidget.load_profile_signal.emit(text)
 
     def __on_new(self):
-        print("on_new")
         popup = NewProfileName()
         popup.submit_signal.connect(self.__on_new_submit)
         popup.submit_signal.connect(self.refresh_combobox)
