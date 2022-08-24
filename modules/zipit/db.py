@@ -59,7 +59,7 @@ class DBManager:
     __engine = sqla.create_engine(f"sqlite:///{Path(__file__).parent / 'database.db'}", echo=True)
     __session = orm.Session(bind=__engine)
 
-    def __check_db_exist(method):
+    def __check_db_exist(method):  # TODO: check_db -> one profile needs to exist
         @functools.wraps(method)
         def inner(*args, **kwargs):
             try:

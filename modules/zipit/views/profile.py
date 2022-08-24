@@ -20,8 +20,8 @@ class ProfileBox(qtw.QGroupBox):
 
         # widgets
         self.__combobox = qtw.QComboBox()
-        self.refresh_combobox()
         self.__combobox.currentTextChanged.connect(self.__on_combobox_change)
+        self.refresh_combobox()
 
         minsize_policy = qtw.QSizePolicy(qtw.QSizePolicy.Maximum, qtw.QSizePolicy.Fixed)
         self.__new_button = qtw.QPushButton("New")
@@ -71,8 +71,7 @@ class ProfileBox(qtw.QGroupBox):
         self.refresh_combobox(new_name)
 
     def __on_delete(self):
-        profiles = DBManager.get_profiles()
-        if len(profiles) <= 1:
+        if len(DBManager.get_profiles()) <= 1:
             # open error popup
             error_popup("Error", f'Only one profile is left.')
             return
@@ -80,7 +79,8 @@ class ProfileBox(qtw.QGroupBox):
             error_popup("Error", "Current profile not found in the Database.")
             return
         DBManager.delete_profile(self.__combobox.currentText())
-        self.__mainwidget.load_profile_signal.emit(profiles[0])
+        #self.__mainwidget.load_profile_signal.emit(profiles[0])
+        profiles = DBManager.get_profiles()
         self.refresh_combobox(profiles[0])
 
     @qtc.pyqtSlot(str)
@@ -95,10 +95,12 @@ class ProfileBox(qtw.QGroupBox):
         if not DBManager.profile_exists(profile):  # FIXME: what if no profile at all exists
             raise DatabaseError(f'Profile "{profile}" does not exist. Checks failed.')
 
+        self.__combobox.currentTextChanged.disconnect(self.__on_combobox_change)
         self.__combobox.clear()
         self.__combobox.addItems(DBManager.get_profiles())
         self.__combobox.setCurrentText(profile)
         self.__mainwidget.load_profile_signal.emit(profile)  # emit to other widgets the new current profile
+        self.__combobox.currentTextChanged.connect(self.__on_combobox_change)
 
 
 # Popup for getting a new valid profile name
