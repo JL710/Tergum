@@ -59,13 +59,16 @@ class DBManager:
     __engine = sqla.create_engine(f"sqlite:///{Path(__file__).parent / 'database.db'}", echo=True)
     __session = orm.Session(bind=__engine)
 
-    def __check_db_exist(method):  # TODO: check_db -> one profile needs to exist
+    def __check_db_exist(method):
         @functools.wraps(method)
         def inner(*args, **kwargs):
             try:
                 return method(*args, **kwargs)
             except OperationalError:
                 Base.metadata.create_all(DBManager.__engine)
+                profile_obj = Profile(name="profile1")
+                DBManager.__session.add(profile_obj)
+                DBManager.__session.commit()
             return method(*args, **kwargs)
         return inner
 
