@@ -27,6 +27,7 @@ class MainWidget(qtw.QWidget):
         self.__excluded_cargo_groupbox = CargoBox("Exclude from Cargo", include=False)
         self.load_profile_signal.connect(self.__excluded_cargo_groupbox.refresh)
         self.__startbutton = StartButton()
+        self.load_profile_signal.connect(self.__startbutton.on_profile_change_slot)
         self.__profile_groupbox = ProfileBox(mainwidget=self)  # needs to be the last to be initioated -> else others wont get the newest profile via signal -> extra call for signal (.refresh_combomox()) does not work why ever
 
         # layout stuff
