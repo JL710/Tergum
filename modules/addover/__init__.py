@@ -167,7 +167,7 @@ class SetupWidget(qtw.QWidget):
         @qtc.pyqtSlot()
         def add_dir(self):
             path = Path(qtw.QFileDialog.getExistingDirectory())
-            if path != "":  # checks if user canceled selection without any select
+            if path.is_dir():  # checks if user canceled selection without any select
                 cb.add_payload(self.__parent.current_profile, str(path))
             self.refresh()
 
