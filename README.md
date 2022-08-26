@@ -11,7 +11,7 @@ Software für das sichern von Dateien, bzw. diese zu Synchronisieren.
 |   +-- module_dir
 |       |-- __init__.py
 |       |-- test.py
-|       |-- data.json / settings.json
+|       |-- data.json / settings.json / database.db
 |       |-- otherfiles...
 |   
 |-- main.py
@@ -22,7 +22,7 @@ Software für das sichern von Dateien, bzw. diese zu Synchronisieren.
 
 Ein Modul stellt ein "Tab" und die dazu gehörigen Einstellungen dar. Es stellt z.B. das synchronisieren von Verzeichnissen dar.
 
-Modul Code bleibt im `modules/module_dir`. Alle modulrelevanten Einstellungen oder Daten werden in der `data.json` oder `settings.json` gespeichert.
+Modul Code bleibt im `modules/module_dir`. Alle modulrelevanten Einstellungen oder Daten werden in der `data.json`, `database.db` oder `settings.json` gespeichert.
 
 Der GUI Code ist in der `modules/module_dir/__init__.py` untergebracht. Hier gibt es einmal das `MainWidget` und das `Menu`.
 Das Menu ist entweder `None` oder `QMenu`. Ist es `QMenu` bekommt `Menu` zudem das `MainWidget` übergeben (für Signals etc.). 
