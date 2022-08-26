@@ -150,7 +150,10 @@ def start(profile: str):
 
         command = get_command().replace("SOURCE", str(Path(payload)))
         command = command.replace("DESTINATION", str(destination))
-        output = os.popen(command).read()
+        try:
+            output = os.popen(command).read().decode('utf-8',errors='ignore')
+        except UnicodeDecodeError:
+            output = "!!!UnicodeDecodeError!!!" # FIXME: just not perfect solution
         yield {"event-message": f"xcopy output: {output}", "percentage": int(index_payload * percent_factor), "finished": False}
         
     yield {"event-message": f"Finished", "percentage": 100, "finished": True}
