@@ -56,7 +56,7 @@ class Target(Base):
 
 class DBManager:
 
-    __engine = sqla.create_engine(f"sqlite:///{Path(__file__).parent / 'database.db'}", echo=True)
+    __engine = sqla.create_engine(f"sqlite:///{Path(__file__).parent / 'database.db'}", echo=False, connect_args={'check_same_thread': False})
     __session = orm.Session(bind=__engine)
 
     def __check_db_exist(method):
